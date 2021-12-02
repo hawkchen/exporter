@@ -180,29 +180,44 @@ public abstract class AbstractExporter <E, T> {
 	 * Export {@link MeshElement}
 	 * 
 	 * @param columnSize
-	 * @param target
+	 * @param meshElement
 	 * @param e
 	 */
-	protected void exportRows(int columnSize, MeshElement target, E e) {
+	protected void exportRows(int columnSize, MeshElement meshElement, E e) {
 		int rowIndex = 0;
 		Component rows = null;
 		try {
-			rows = (Component)invokeComponentGetter(target, "getRows");//for grid
+			rows = (Component)invokeComponentGetter(meshElement, "getRows");//for grid
 		} catch (ClassCastException ex) {//listbox's getRows will return Integer
 		}
-		for (Component cmp : rows != null ? rows.getChildren() : target.getChildren()) {
+		rowIndex += countHeaderRow(meshElement);
+		for (Component cmp : rows != null ? rows.getChildren() : meshElement.getChildren()) {
 			if (cmp instanceof Listitem || cmp instanceof Row) {
 				if (cmp instanceof Listgroup || cmp instanceof Group) {
 					exportGroup(columnSize, cmp, e);
+					rowIndex++;
 				} else if (cmp instanceof Listgroupfoot || cmp instanceof Groupfoot){
 					exportGroupfoot(columnSize, cmp, e);
+					rowIndex++;
 				} else {
 					exportCells(rowIndex++, columnSize, cmp, e);
 				}
 			}
 		}
 	}
-	
+
+	protected int countHeaderRow(MeshElement meshElement){
+		int total = 0;
+		for (Component header: meshElement.getChildren()){
+			if (header instanceof Auxhead
+				|| header instanceof Listhead
+				|| header instanceof Columns){
+				total++;
+			}
+		}
+		return total;
+	};
+
 	/**
 	 * Export {@link MeshElement}
 	 * 

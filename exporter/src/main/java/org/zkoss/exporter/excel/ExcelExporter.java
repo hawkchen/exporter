@@ -44,6 +44,7 @@ import org.zkoss.poi.ss.usermodel.CellStyle;
 import org.zkoss.poi.ss.usermodel.RichTextString;
 import org.zkoss.poi.ss.usermodel.Row;
 import org.zkoss.poi.ss.usermodel.Sheet;
+import org.zkoss.poi.ss.util.CellRangeAddress;
 import org.zkoss.poi.xssf.usermodel.XSSFCellStyle;
 import org.zkoss.poi.xssf.usermodel.XSSFDataFormat;
 import org.zkoss.poi.xssf.usermodel.XSSFRichTextString;
@@ -247,7 +248,7 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 			}
 			
 			Cell cell = getOrCreateCell(ctx.moveToNextCell(), sheet);
-		    if(cmp.getAttribute("exportAsString") != null && (cmp.getAttribute("exportAsString").equals("true") || cmp.getAttribute("exportAsString").equals(true))){ 
+		    if(isExportAsString(cmp)){
 		         RichTextString xssfRichTextString = new XSSFRichTextString(Utils.getStringValue(cmp)); 
 		         cell.setCellValue(xssfRichTextString); 
 		     } else {
@@ -304,6 +305,9 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 						cell.setCellValue("Y");
 						cellProcessed = true;
 					}
+				} else if (cmp instanceof org.zkoss.zul.Cell){
+					exportCell(cell, (org.zkoss.zul.Cell) cmp, rowIndex, c, ctx);
+					cellProcessed = true;
 				} else if(StringUtils.isEmpty(value)) {
 					cell.setCellValue("");
 					cellProcessed = true;
@@ -318,7 +322,19 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 		}
 		ctx.moveToNextRow();
 	}
-	
+
+	private boolean isExportAsString(Component cmp) {
+		return cmp.getAttribute("exportAsString") != null && (cmp.getAttribute("exportAsString").equals("true") || cmp.getAttribute("exportAsString").equals(true));
+	}
+
+	private void exportCell(Cell cell, org.zkoss.zul.Cell zkCell, int rowIndex, int colIndex, ExportContext ctx) {
+		int colspan = zkCell.getColspan();
+		cell.setCellValue(getStringValue(zkCell.getFirstChild()));
+		if (colspan > 1) {
+			ctx.getSheet().addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, colIndex, colIndex + colspan - 1));
+		}
+	}
+
 	@Override
 	protected void exportFooters(int columnSize, Component target, XSSFWorkbook book) {
 		Component footers = getFooters(target);
