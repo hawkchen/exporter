@@ -26,24 +26,34 @@ import static org.zkoss.exporter.util.Utils.invokeComponentGetter;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.commons.lang.StringUtils;
 import org.zkoss.exporter.AbstractExporter;
 import org.zkoss.exporter.GroupRenderer;
 import org.zkoss.exporter.RowRenderer;
 import org.zkoss.exporter.excel.imp.CellValueSetterFactoryImpl;
+import org.zkoss.exporter.util.Utils;
 import org.zkoss.poi.ss.usermodel.Cell;
+import org.zkoss.poi.ss.usermodel.CellStyle;
+import org.zkoss.poi.ss.usermodel.RichTextString;
 import org.zkoss.poi.ss.usermodel.Row;
 import org.zkoss.poi.ss.usermodel.Sheet;
 import org.zkoss.poi.xssf.usermodel.XSSFCellStyle;
+import org.zkoss.poi.xssf.usermodel.XSSFDataFormat;
+import org.zkoss.poi.xssf.usermodel.XSSFRichTextString;
 import org.zkoss.poi.xssf.usermodel.XSSFSheet;
 import org.zkoss.poi.xssf.usermodel.XSSFWorkbook;
 import org.zkoss.zk.ui.Component;
+import org.zkoss.zul.A;
 import org.zkoss.zul.Auxhead;
+import org.zkoss.zul.Listcell;
+import org.zkoss.zul.Span;
 import org.zkoss.zul.impl.HeaderElement;
 import org.zkoss.zul.impl.MeshElement;
 
@@ -192,7 +202,6 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 		ExportContext ctx = getExportContext();
 		XSSFSheet sheet = ctx.getSheet();
 		for (Component c : component.getChildren()) {
-			
 			Cell cell = getOrCreateCell(ctx.moveToNextCell(), sheet);
 			cellValueSetter.setCellValue(c, cell);
 			syncAlignment(c, cell, book);
@@ -233,11 +242,77 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 			Component cmp = c < children.size() ? children.get(c) : null;
 			
 			if (cmp == null) {
+				ctx.moveToNextRow();
 				return;
 			}
 			
 			Cell cell = getOrCreateCell(ctx.moveToNextCell(), sheet);
-			cellValueSetter.setCellValue(cmp, cell);
+		    if(cmp.getAttribute("exportAsString") != null && (cmp.getAttribute("exportAsString").equals("true") || cmp.getAttribute("exportAsString").equals(true))){ 
+		         RichTextString xssfRichTextString = new XSSFRichTextString(Utils.getStringValue(cmp)); 
+		         cell.setCellValue(xssfRichTextString); 
+		     } else {
+		    	boolean cellProcessed = false;
+		    	String value = cmp.isVisible() ? (String) getStringValue(cmp) : "";
+		    	value = value != null ? value.trim() : value;
+		    	
+				// Try to format number only when the label does not contain alphabets
+				if(StringUtils.isNotEmpty(value) && !value.matches(".*[a-z A-Z/].*")) {
+					XSSFDataFormat dataFormat = book.createDataFormat();
+					XSSFCellStyle currencyStyle = book.createCellStyle();
+					Number numberValue;
+					try {
+						if(value.endsWith("%")) {
+							numberValue = NumberFormat.getPercentInstance().parse(value);
+							cell.setCellValue(value.contains(".") ? numberValue.floatValue() : numberValue.doubleValue());
+							
+							currencyStyle.setDataFormat(dataFormat.getFormat(value.contains(".") ? "0.00%" : "0%"));
+						} else {
+							numberValue = NumberFormat.getCurrencyInstance().parse(value);
+							cell.setCellValue(value.contains(".") ? numberValue.floatValue() : numberValue.doubleValue());
+							
+							currencyStyle.setDataFormat(dataFormat.getFormat(value.contains(".") ? "\"$\"#,##0.00_);[Red](\"$\"#,##0.00)" : "\"$\"#,##0_);[Red](\"$\"#,##0)"));
+						}
+						cell.setCellStyle(currencyStyle);
+						cellProcessed = true;
+					} catch (ParseException e) {
+						// Do not throw exception and let the cell value be set as-is in the end
+						try {
+							numberValue = NumberFormat.getNumberInstance().parse(value);
+							cell.setCellValue(value.contains(".") ? numberValue.floatValue() : numberValue.doubleValue());
+							currencyStyle.setDataFormat(dataFormat.getFormat(value.contains(".") ? "#,##0.00_);[Red](#,##0.00)" : "#,##0_);[Red](#,##0)"));
+							cell.setCellStyle(currencyStyle);
+							cellProcessed = true;
+						} catch (ParseException pe) {
+							// Do not throw exception and let the cell value be set as-is in the end
+						}
+					}
+				} else if(cmp instanceof Listcell) {
+					Listcell listcell = (Listcell) cmp;
+					if(listcell.getIconSclass() != null && listcell.getIconSclass().contains("fa-")) {
+						cell.setCellValue("Y");
+						cellProcessed = true;
+					}
+				} else if(cmp.getFirstChild() != null && cmp.getFirstChild() instanceof Span) {  
+					Span span = (Span) cmp.getFirstChild();
+					if(span != null && span.getSclass() != null && span.getSclass().contains("fa-")) {
+						cell.setCellValue("Y");
+						cellProcessed = true;
+					}
+				} else if(cmp instanceof Span) {  
+					Span span = (Span) cmp;
+					if(span != null && span.getSclass() != null && span.getSclass().contains("fa-")) {
+						cell.setCellValue("Y");
+						cellProcessed = true;
+					}
+				} else if(StringUtils.isEmpty(value)) {
+					cell.setCellValue("");
+					cellProcessed = true;
+				}
+				
+				if(!cellProcessed) {
+					cellValueSetter.setCellValue(cmp, cell);
+				}
+		     }
 			
 			syncAlignment(cmp, headers != null ? headers.get(c) : null, cell, book);
 		}
@@ -263,7 +338,7 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 			} else {
 				//TODO: merge col span
 				//TODO: not tested yet
-				int colIdx = ctx.getColumnIndex() + span;
+				int colIdx = ctx.getColumnIndex();
 				ctx.setColumnIndex(colIdx);
 				getOrCreateCell(ctx.getRowIndex(), colIdx, sheet).setCellValue(getStringValue(cmp));
 			}

@@ -29,16 +29,18 @@
 				        </template>
 				        <template name="model">
 				            <row>
+								<cell colspan="5">
 				                <label value="@load(each.name)" />
-				                <label value="@load(each.topNutrients)" />
-				                <label value="@load(each.dailyPercent)" />
-				                <label value="@load(each.calories)" />
-				                <label value="@load(each.quantity)" />
+
+								</cell>
+<!--				                <label value="@load(each.topNutrients)" />-->
+<!--				                <label value="@load(each.dailyPercent)" />-->
+<!--				                <label value="@load(each.calories)" />-->
+<!--				                <label value="@load(each.quantity)" />-->
 				            </row>
 				        </template>
 				        <template name="model:groupfoot">
-				            <groupfoot label="@load(each)">
-				            </groupfoot>
+				            <groupfoot label="@load(each)" spans="5"/>
 				        </template>
 					</grid>
 				</div>				
