@@ -17,7 +17,7 @@ Copyright (C) 2012 Potix Corporation. All Rights Reserved.
 package org.zkoss.exporter.excel;
 
 import static org.zkoss.exporter.util.Utils.getAlign;
-import static org.zkoss.exporter.util.Utils.getFooters;
+import static org.zkoss.exporter.util.Utils.getFoot;
 import static org.zkoss.exporter.util.Utils.getHeaderSize;
 import static org.zkoss.exporter.util.Utils.getHeaders;
 import static org.zkoss.exporter.util.Utils.getStringValue;
@@ -38,7 +38,7 @@ import org.zkoss.exporter.AbstractExporter;
 import org.zkoss.exporter.GroupRenderer;
 import org.zkoss.exporter.RowRenderer;
 import org.zkoss.exporter.excel.imp.CellValueSetterFactoryImpl;
-import org.zkoss.exporter.util.Utils;
+import org.zkoss.exporter.util.*;
 import org.zkoss.poi.ss.usermodel.Cell;
 import org.zkoss.poi.ss.usermodel.CellStyle;
 import org.zkoss.poi.ss.usermodel.RichTextString;
@@ -51,7 +51,6 @@ import org.zkoss.poi.xssf.usermodel.XSSFRichTextString;
 import org.zkoss.poi.xssf.usermodel.XSSFSheet;
 import org.zkoss.poi.xssf.usermodel.XSSFWorkbook;
 import org.zkoss.zk.ui.Component;
-import org.zkoss.zul.A;
 import org.zkoss.zul.Auxhead;
 import org.zkoss.zul.Listcell;
 import org.zkoss.zul.Span;
@@ -66,6 +65,7 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 
 	private ExportContext _exportContext;
 	private CellValueSetterFactory _cellValueSetterFactory;
+	private TextExtractor footTextExtractor = new LabelExtractor(); // used to get text from a foot
 	
 	public <D> void export(int columnSize, Collection<D> data, RowRenderer<Row, D> renderer, OutputStream outputStream) throws IOException {
 		XSSFWorkbook book = new XSSFWorkbook();
@@ -141,14 +141,14 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 	}
 	
 	@Override
-	protected void exportTabularComponent(MeshElement component, OutputStream outputStream) throws Exception {
+	protected void exportTabularComponent(MeshElement meshElement, OutputStream outputStream) throws Exception {
 		XSSFWorkbook book = new XSSFWorkbook();
 		setExportContext(new ExportContext(true, book.createSheet("Sheet1")));
 		
-		int columnSize = getHeaderSize(component);
-		exportHeaders(columnSize, component, book);
-		exportRows(columnSize, component, book);
-		exportFooters(columnSize, component, book);
+		int columnSize = getHeaderSize(meshElement);
+		exportHeaders(columnSize, meshElement, book);
+		exportRows(columnSize, meshElement, book);
+		exportFooters(columnSize, meshElement, book);
 		
 		adjustColumnWidth(columnSize);
 		
@@ -159,7 +159,7 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 	@Override
 	protected void exportAuxhead(int columnSize, Auxhead auxhead, XSSFWorkbook book) {
 		//TODO: process row span
-		exportCellsWithSpan(columnSize, auxhead, book);
+		exportCellsWithSpan(columnSize, auxhead, book, new LabelExtractor());
 	}
 	
 	private void setCellAlignment(short alignment, Cell cell, XSSFWorkbook book) {
@@ -228,7 +228,7 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 
 	@Override
 	protected void exportGroupfoot(int columnSize, Component groupfoot,	XSSFWorkbook book) {
-		exportCellsWithSpan(columnSize, groupfoot, book);
+		exportCellsWithSpan(columnSize, groupfoot, book, new LabelExtractor());
 	}
 
 	@Override
@@ -336,28 +336,26 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 	}
 
 	@Override
-	protected void exportFooters(int columnSize, Component target, XSSFWorkbook book) {
-		Component footers = getFooters(target);
-		if (footers == null) {
+	protected void exportFooters(int columnSize, Component meshElement, XSSFWorkbook book) {
+		Component foot = getFoot(meshElement);
+		if (foot == null) {
 			return;
 		}
-		exportCellsWithSpan(columnSize, footers, book);
+
+		exportCellsWithSpan(columnSize, foot, book, this.footTextExtractor);
 	}
 	
-	private void exportCellsWithSpan(int columnSize, Component component, XSSFWorkbook book) {
+	private void exportCellsWithSpan(int columnSize, Component component, XSSFWorkbook book, TextExtractor textExtractor) {
 		ExportContext ctx = getExportContext();
 		XSSFSheet sheet = ctx.getSheet();
 		for (Component cmp : component.getChildren()) {
-			int span = getColSpan(cmp);
-			if (span == 1) {
-				getOrCreateCell(ctx.moveToNextCell(), sheet).setCellValue(getStringValue(cmp));
-			} else {
-				//TODO: merge col span
-				//TODO: not tested yet
-				int colIdx = ctx.getColumnIndex();
-				ctx.setColumnIndex(colIdx);
-				getOrCreateCell(ctx.getRowIndex(), colIdx, sheet).setCellValue(getStringValue(cmp));
+			int colIndex = 0;
+			int colSpan = getColSpan(cmp);
+				getOrCreateCell(ctx.moveToNextCell(), sheet).setCellValue(textExtractor.getText(cmp));
+			if (colSpan > 1) {
+				ctx.getSheet().addMergedRegion(new CellRangeAddress(ctx.getRowIndex(), ctx.getRowIndex(), colIndex, colIndex + colSpan - 1));
 			}
+			colIndex++;
 		}
 		ctx.moveToNextRow();
 	}
@@ -511,5 +509,9 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 		@Override
 		public void afterRendering(XSSFWorkbook book) {
 		}
+	}
+
+	public void setFootTextExtractor(TextExtractor footTextExtractor) {
+		this.footTextExtractor = footTextExtractor;
 	}
 }

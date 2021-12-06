@@ -43,7 +43,7 @@ public class Utils {
 		return target;
 	}
 	
-	public static Component getFooters(Component target) {
+	public static Component getFoot(Component target) {
 		//get Grid's foot component or get Listbox's Listfoot component
 		return (Component)invokeComponentGetter(target, "getFoot", "getListfoot");
 	}
