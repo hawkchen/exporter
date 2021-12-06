@@ -187,7 +187,13 @@ public class FoodGroupVM {
 	@Command
 	public void exportGrid(@BindingParam("ref") Grid grid) throws Exception {
 		PdfExporter exporter = new PdfExporter();
-		
+
+		/*
+		exporter.setFootTextExtractor(parentComponent -> {
+			return "extracted text";
+		});
+		 */
+
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		exporter.export(grid, out);
 		
