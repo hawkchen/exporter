@@ -32,7 +32,7 @@ import org.zkoss.exporter.excel.ExcelExporter.ExportContext;
 import org.zkoss.exporter.pdf.FontFactory;
 import org.zkoss.exporter.pdf.PdfExporter;
 import org.zkoss.exporter.pdf.PdfPCellFactory;
-import org.zkoss.exporter.util.GroupsModelArrayAdapter;
+import org.zkoss.exporter.util.*;
 import org.zkoss.poi.ss.usermodel.Cell;
 import org.zkoss.poi.ss.usermodel.CellStyle;
 import org.zkoss.poi.ss.usermodel.Row;
@@ -40,6 +40,7 @@ import org.zkoss.poi.xssf.usermodel.XSSFCellStyle;
 import org.zkoss.poi.xssf.usermodel.XSSFSheet;
 import org.zkoss.poi.xssf.usermodel.XSSFWorkbook;
 import org.zkoss.util.media.AMedia;
+import org.zkoss.zk.ui.Component;
 import org.zkoss.zul.Filedownload;
 import org.zkoss.zul.Grid;
 import org.zkoss.zul.GroupsModelArray;
@@ -307,7 +308,18 @@ public class FoodGroupVM {
 	@Command
 	public void exportGridToExcel(@BindingParam("ref") Grid grid) throws Exception {
 		ExcelExporter exporter = new ExcelExporter();
-		
+
+		/*
+		//example to use a text extractor
+		exporter.setFootTextExtractor(new TextExtractor() {
+			@Override
+			public String getText(Component parentComponent) {
+				//implement your own way to get text from a footer
+				return "a custom footer";
+			}
+		});
+		*/
+
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		exporter.export(grid, out);
 		

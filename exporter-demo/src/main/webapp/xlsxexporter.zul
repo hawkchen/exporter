@@ -1,7 +1,7 @@
 <?page title="new page title" contentType="text/html;charset=UTF-8"?>
 <?page title="new page title" contentType="text/html;charset=UTF-8"?>
 <zk>
-	<tabbox apply="org.zkoss.bind.BindComposer" 
+	<tabbox
 			viewModel="@id('vm') @init('demo.vm.FoodGroupVM')"
 			width="800px"
 			style="margin: auto;">
@@ -10,8 +10,8 @@
 			<tab label="Listbox" />
 		</tabs>
 		<tabpanels>
-			<tabpanel>
-				<div hflex="1" vflex="1">
+			<tabpanel >
+				<div hflex="1" >
 					<toolbar>
 						<toolbarbutton label="Export Excel by component" onClick="@command('exportGridToExcel', ref=grid)"></toolbarbutton>
 						<toolbarbutton label="Export Excel by Data Model" onClick="@command('exportToExcelByDataModel')"></toolbarbutton>
