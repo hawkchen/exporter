@@ -18,7 +18,7 @@ package org.zkoss.exporter.pdf;
 
 import static org.zkoss.exporter.util.Utils.getAlign;
 import static org.zkoss.exporter.util.Utils.getFooterColumnHeader;
-import static org.zkoss.exporter.util.Utils.getFooters;
+import static org.zkoss.exporter.util.Utils.getFoot;
 import static org.zkoss.exporter.util.Utils.getHeaderSize;
 import static org.zkoss.exporter.util.Utils.getHeaders;
 import static org.zkoss.exporter.util.Utils.getStringValue;
@@ -150,7 +150,7 @@ public class PdfExporter extends AbstractExporter<PdfPTable, PdfPTable> {
 	}
 	
 	protected void exportFooters(int columnSize, Component target, PdfPTable table) {
-		Component footers = getFooters(target);
+		Component footers = getFoot(target);
 		if (footers == null) {
 			return;
 		}
