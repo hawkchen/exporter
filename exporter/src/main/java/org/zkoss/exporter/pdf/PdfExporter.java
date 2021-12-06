@@ -150,27 +150,27 @@ public class PdfExporter extends AbstractExporter<PdfPTable, PdfPTable> {
 	}
 	
 	protected void exportFooters(int columnSize, Component target, PdfPTable table) {
-		Component footers = getFoot(target);
-		if (footers == null) {
+		Component foot = getFoot(target);
+		if (foot == null) {
 			return;
 		}
 		
-		List<Component> children = target.getChildren();
+		List<Component> children = foot.getChildren();
 		int colSpan = 0;
 		for (int i = 0; i < columnSize; i++) {
-			Component current = i < children.size() ? children.get(i) : null;
+			Component footer = i < children.size() ? children.get(i) : null;
 			Component next = i + 1 < children.size() ? children.get(i + 1) : null;
-			if (current == null)
+			if (footer == null)
 				break;
-			
+
 			PdfPCell cell = getPdfPCellFactory().getFooterCell();
-			cell.setPhrase(new Phrase(getStringValue(current), getFontFactory().getFont(FontFactory.FONT_TYPE_FOOTER)));
+			cell.setPhrase(new Phrase(footTextExtractor.getText(footer), getFontFactory().getFont(FontFactory.FONT_TYPE_FOOTER)));
 			
-			syncAlignment(getFooterColumnHeader(current), cell);
+			syncAlignment(getFooterColumnHeader(footer), cell);
 			if (next == null && colSpan < columnSize - 1) {
 				cell.setBorderWidthRight(0);
 			} else {
-				colSpan += syncCellColSpan(current, cell);
+				colSpan += syncCellColSpan(footer, cell);
 			}
 			table.addCell(cell);
 			
