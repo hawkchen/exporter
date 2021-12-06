@@ -65,8 +65,7 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 
 	private ExportContext _exportContext;
 	private CellValueSetterFactory _cellValueSetterFactory;
-	private TextExtractor footTextExtractor = new LabelExtractor(); // used to get text from a foot
-	
+
 	public <D> void export(int columnSize, Collection<D> data, RowRenderer<Row, D> renderer, OutputStream outputStream) throws IOException {
 		XSSFWorkbook book = new XSSFWorkbook();
 		ExportContext ctx = new ExportContext(true, book.createSheet("Sheet1"));
@@ -509,9 +508,5 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 		@Override
 		public void afterRendering(XSSFWorkbook book) {
 		}
-	}
-
-	public void setFootTextExtractor(TextExtractor footTextExtractor) {
-		this.footTextExtractor = footTextExtractor;
 	}
 }

@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
 
+import org.zkoss.exporter.util.*;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zul.Auxhead;
 import org.zkoss.zul.Columns;
@@ -43,7 +44,8 @@ import org.zkoss.zul.impl.MeshElement;
 public abstract class AbstractExporter <E, T> {
 	
 	protected Interceptor<E> _interceptor;
-	
+	protected TextExtractor footTextExtractor = new LabelExtractor(); // used to get text from a foot
+
 	/**
 	 * Export {@link Auxhead} component
 	 * 
@@ -252,5 +254,9 @@ public abstract class AbstractExporter <E, T> {
 	 */
 	public Interceptor<E> getInterceptor() {
 		return _interceptor;
+	}
+
+	public void setFootTextExtractor(TextExtractor footTextExtractor) {
+		this.footTextExtractor = footTextExtractor;
 	}
 }
