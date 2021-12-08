@@ -155,31 +155,12 @@ public class PdfExporter extends AbstractExporter<PdfPTable, PdfPTable> {
 			return;
 		}
 		
-		List<Component> children = foot.getChildren();
-		int colSpan = 0;
-		for (int i = 0; i < columnSize; i++) {
-			Component footer = i < children.size() ? children.get(i) : null;
-			Component next = i + 1 < children.size() ? children.get(i + 1) : null;
-			if (footer == null)
-				break;
-
+		for (Component footer : foot.getChildren()) {
 			PdfPCell cell = getPdfPCellFactory().getFooterCell();
 			cell.setPhrase(new Phrase(footTextExtractor.getText(footer), getFontFactory().getFont(FontFactory.FONT_TYPE_FOOTER)));
-			
 			syncAlignment(getFooterColumnHeader(footer), cell);
-			if (next == null && colSpan < columnSize - 1) {
-				cell.setBorderWidthRight(0);
-			} else {
-				colSpan += syncCellColSpan(footer, cell);
-			}
+			syncCellColSpan(footer, cell);
 			table.addCell(cell);
-			
-			if (next == null && colSpan < columnSize - 1) {
-				cell = getPdfPCellFactory().getFooterCell();
-				cell.setBorderWidthLeft(0);
-				cell.setColspan(columnSize - colSpan - 1);
-				table.addCell(cell);
-			}
 		}
 		table.completeRow();
 	}
@@ -336,10 +317,8 @@ public class PdfExporter extends AbstractExporter<PdfPTable, PdfPTable> {
 	}
 
 	private int syncCellColSpan(Component cmp, PdfPCell cell) {
-		int span = 1;
-		Object spanVal = invokeComponentGetter(cmp, "getColspan", "getSpan");
-		if (spanVal != null && spanVal instanceof Number)
-			span = ((Number)spanVal).intValue();
+		int span = getColSpan(cmp);
+		cell.setColspan(span);
 		return span;
 	}
 	

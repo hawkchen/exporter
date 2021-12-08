@@ -22,7 +22,6 @@ import static org.zkoss.exporter.util.Utils.getHeaderSize;
 import static org.zkoss.exporter.util.Utils.getHeaders;
 import static org.zkoss.exporter.util.Utils.getStringValue;
 import static org.zkoss.exporter.util.Utils.getTarget;
-import static org.zkoss.exporter.util.Utils.invokeComponentGetter;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -387,15 +386,7 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 		}
 		return r;
 	}
-	
-	private static int getColSpan(Component cmp) {
-		int span = 1;
-		Object spanVal = invokeComponentGetter(cmp, "getColspan", "getSpan");
-		if (spanVal != null && spanVal instanceof Number)
-			span = ((Number)spanVal).intValue();
-		return span;
-	}
-	
+
 	public static Cell getOrCreateCell(int[] idx, Sheet sheet) {
 		return getOrCreateCell(idx[0], idx[1], sheet);
 	}

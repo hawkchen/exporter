@@ -119,7 +119,15 @@ public abstract class AbstractExporter <E, T> {
 	 * @throws Exception
 	 */
 	public abstract <D> void export(int columnSize, Collection<D> data, RowRenderer<T, D> renderer, OutputStream outputStream) throws Exception;
-	
+
+	protected static int getColSpan(Component cmp) {
+		int span = 1;
+		Object spanVal = invokeComponentGetter(cmp, "getColspan", "getSpan");
+		if (spanVal != null && spanVal instanceof Number)
+			span = ((Number)spanVal).intValue();
+		return span;
+	}
+
 	/**
 	 * Export data with headers
 	 * 
