@@ -230,6 +230,7 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 			
 			Cell cell = getOrCreateCell(context.moveToNextCell(), sheet);
 			cellValueSetter.setCellValue(cmp, cell);
+			applyBoldColoredStyle(book, cell);
 		}
 		context.moveToNextRow();
 	}
@@ -352,17 +353,22 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 
 		exportCellsWithSpan(columnSize, foot, book, this.footTextExtractor);
 	}
-	
+
+	/*
+	 * assume <cell colspan></cell> in a <groupfoot/> instead of the deprecated attribute <groupfoot spans>.
+	 */
 	private void exportCellsWithSpan(int columnSize, Component component, XSSFWorkbook book, TextExtractor textExtractor) {
 		ExportContext ctx = getExportContext();
 		XSSFSheet sheet = ctx.getSheet();
 		for (Component cmp : component.getChildren()) {
 			int colIndex = 0;
 			int colSpan = getColSpan(cmp);
-				getOrCreateCell(ctx.moveToNextCell(), sheet).setCellValue(textExtractor.getText(cmp));
+			Cell cell = getOrCreateCell(ctx.moveToNextCell(), sheet);
+			cell.setCellValue(textExtractor.getText(cmp));
 			if (colSpan > 1) {
 				ctx.getSheet().addMergedRegion(new CellRangeAddress(ctx.getRowIndex(), ctx.getRowIndex(), colIndex, colIndex + colSpan - 1));
 			}
+			applyBoldColoredStyle(book, cell);
 			colIndex++;
 		}
 		ctx.moveToNextRow();
