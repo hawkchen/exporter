@@ -38,17 +38,9 @@ import org.zkoss.exporter.GroupRenderer;
 import org.zkoss.exporter.RowRenderer;
 import org.zkoss.exporter.excel.imp.CellValueSetterFactoryImpl;
 import org.zkoss.exporter.util.*;
-import org.zkoss.poi.ss.usermodel.Cell;
-import org.zkoss.poi.ss.usermodel.CellStyle;
-import org.zkoss.poi.ss.usermodel.RichTextString;
-import org.zkoss.poi.ss.usermodel.Row;
-import org.zkoss.poi.ss.usermodel.Sheet;
+import org.zkoss.poi.ss.usermodel.*;
 import org.zkoss.poi.ss.util.CellRangeAddress;
-import org.zkoss.poi.xssf.usermodel.XSSFCellStyle;
-import org.zkoss.poi.xssf.usermodel.XSSFDataFormat;
-import org.zkoss.poi.xssf.usermodel.XSSFRichTextString;
-import org.zkoss.poi.xssf.usermodel.XSSFSheet;
-import org.zkoss.poi.xssf.usermodel.XSSFWorkbook;
+import org.zkoss.poi.xssf.usermodel.*;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zul.Auxhead;
 import org.zkoss.zul.Listcell;
@@ -194,18 +186,36 @@ public class ExcelExporter extends AbstractExporter <XSSFWorkbook, Row> {
 			syncAlignment(header, cell, book);
 		}
 	}
-	
+
+	/**
+	 * column header are bold.
+	 * @param columns
+	 * @param book
+	 */
 	@Override
-	protected void exportColumnHeaders(Component component, XSSFWorkbook book) {
+	protected void exportColumnHeaders(Component columns, XSSFWorkbook book) {
 		CellValueSetter<Component> cellValueSetter = getCellValueSetterFactory().getCellValueSetter(Component.class);
 		ExportContext ctx = getExportContext();
 		XSSFSheet sheet = ctx.getSheet();
-		for (Component c : component.getChildren()) {
+		for (Component column : columns.getChildren()) {
 			Cell cell = getOrCreateCell(ctx.moveToNextCell(), sheet);
-			cellValueSetter.setCellValue(c, cell);
-			syncAlignment(c, cell, book);
+			cellValueSetter.setCellValue(column, cell);
+			applyBoldColoredStyle(book, cell);
+			syncAlignment(column, cell, book);
 		}
 		ctx.moveToNextRow();
+	}
+
+	/* bold, background color */
+	private void applyBoldColoredStyle(XSSFWorkbook book, Cell cell) {
+		XSSFCellStyle cellStyle = book.createCellStyle();
+		cellStyle.cloneStyleFrom(cell.getCellStyle());
+		XSSFFont font = book.createFont();
+		font.setBold(true);
+		cellStyle.setFont(font);
+		cellStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+		cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		cell.setCellStyle(cellStyle);
 	}
 
 	@Override
