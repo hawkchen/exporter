@@ -39,6 +39,7 @@ import org.zkoss.exporter.pdf.impl.FontFactoryImpl;
 import org.zkoss.exporter.pdf.impl.PdfPCellFactoryImpl;
 import org.zkoss.exporter.pdf.impl.PdfPTableFactoryImpl;
 import org.zkoss.exporter.pdf.impl.PdfWriterFactoryImpl;
+import org.zkoss.exporter.util.TextExtractor;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zul.Auxhead;
 import org.zkoss.zul.Auxheader;
@@ -186,21 +187,13 @@ public class PdfExporter extends AbstractExporter<PdfPTable, PdfPTable> {
 		HashMap<Integer, Component> headers = buildHeaderIndexMap(getHeaders(getTarget(row)));
 		
 		List<Component> children = row.getChildren();
-		for (int c = 0; c < columnSize; c++) {
-			Component cmp = c < children.size() ? children.get(c) : null;
-			
-			if (cmp == null) {
-				PdfPCell cell = getPdfPCellFactory().getCell(false);
-				cell.setColspan(columnSize - c);
-				table.addCell(cell);
-				return;
-			}
-			
+		for (Component c : row.getChildren()) {
+
 			PdfPCell cell = getPdfPCellFactory().getCell(isOddRow(rowIndex));
-			cell.setPhrase(new Phrase(getStringValue(cmp), getFontFactory().getFont(FontFactory.FONT_TYPE_CELL)));
+			cell.setPhrase(new Phrase(cellTextExtractor.getText(c), getFontFactory().getFont(FontFactory.FONT_TYPE_CELL)));
 			
-			syncCellColSpan(cmp, cell);
-			syncAlignment(cmp, headers != null ? headers.get(c) : null, cell);
+			syncCellColSpan(c, cell);
+			syncAlignment(c, headers != null ? headers.get(c) : null, cell);
 			table.addCell(cell);
 		}
 		table.completeRow();

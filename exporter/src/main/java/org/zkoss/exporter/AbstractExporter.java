@@ -42,9 +42,11 @@ import org.zkoss.zul.impl.MeshElement;
  *
  */
 public abstract class AbstractExporter <E, T> {
-	
+
+	private static final LabelExtractor LABEL_EXTRACTOR = new LabelExtractor();
 	protected Interceptor<E> _interceptor;
-	protected TextExtractor footTextExtractor = new LabelExtractor(); // used to get text from a foot
+	protected TextExtractor footTextExtractor = LABEL_EXTRACTOR; // used to get text from a foot
+	protected TextExtractor cellTextExtractor = LABEL_EXTRACTOR; // used to get text from a cell in a row
 
 	/**
 	 * Export {@link Auxhead} component

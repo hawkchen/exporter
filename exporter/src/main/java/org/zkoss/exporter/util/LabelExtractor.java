@@ -4,7 +4,10 @@ import org.zkoss.zk.ui.Component;
 import org.zkoss.zul.Label;
 
 /**
- * Assume the parent component has only 1 {@link Label}.
+ * Extract the text in the following order:
+ * 1. first {@link Label} child
+ * 2. parent component's label, text, or value attribute
+ * 3. empty string
  */
 public class LabelExtractor implements TextExtractor{
 
