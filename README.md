@@ -1,3 +1,5 @@
+# Deprecated: please check https://github.com/hawkchen/exporter
+
 ZK Exporter
 ========
 License
